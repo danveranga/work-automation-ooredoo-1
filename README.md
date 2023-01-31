@@ -14,9 +14,9 @@ This repository is created for the purpose of maintaining and possibly for conti
 
 ### Here's a little bit of explanation...
 
-This cli app (not really it's just a bunch of logically interconnected scripts) contains **4** main script command / functionality which is used to the the so called "automation" process of the workflow. So in short, you cannot fully understand this "💩" if you don't know the process of the workflow.
+This cli app (not really it's just a bunch of logically interconnected scripts) contains **5** main script command / functionality which is used to the so called "automation" process of the workflow. So in short, you cannot fully understand this "💩" if you don't know the process of the workflow.
 
-Before I go deeper into the oblivion, I must mention that this is work related 😒... so I think you understand why some of my screws are loosed.
+Before I go deeper into the oblivion, I must mention that this is work related 😒... so I think you understand why some of my 🧠 screws are loosed.
 
 I developed this to make things a little more complicated at first, but then easy, organized, efficient, simple, and fast in the long run.
 
