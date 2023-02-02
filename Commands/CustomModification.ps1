@@ -211,11 +211,11 @@ function CM {
         $Col10.Value = $Designation
     }
 
-    if ($Grade -eq "") {
+    if ($EmployeeGrade -eq "") {
         # $Col8.Value = $Col8.Value
     }
     else {
-        $Col11.Value = $Grade
+        $Col11.Value = $EmployeeGrade
     }
 
     # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
@@ -314,11 +314,11 @@ function AutoExitTimer {
     $Timer.Stop()
 }
 
-# run AutoExit
-AutoExitTimer
-
 # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
 TaskKill /IM Excel.exe /F
+
+# run AutoExit
+AutoExitTimer
 
 # garbage collection
 [GC]::Collect()
