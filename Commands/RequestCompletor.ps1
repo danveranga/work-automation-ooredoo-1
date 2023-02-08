@@ -109,6 +109,10 @@ function RequestCompletor {
       $CurrentDateCompletionRow.Interior.ColorIndex = 0
     }
   }
+  # additional remarks feature
+  $DefaultCol13Value = $MainSheet.Cells($($QueryDetails), 13).Value2  # defualt value of Column 13
+  $NewAdditionalRemarks = Read-Host "Other Remarks"
+  $MainSheet.Cells($($QueryDetails), 13).Value = "$($DefaultCol13Value); $($NewAdditionalRemarks)"
 }
 
 # timer function
@@ -131,11 +135,6 @@ function Timer {
 
 # function to save changes
 function SaveMe {
-  # additional remarks feature
-  $DefaultCol13Value = $MainSheet.Cells($($LastUsedRow), 13).Value2  # defualt value of Column 13
-  $NewAdditionalRemarks = Read-Host "Other Remarks"
-  $MainSheet.Cells($($LastUsedRow), 13).Value = "$($DefaultCol13Value); $($NewAdditionalRemarks)"
-
   Write-Host "Saving the Changes . . ." -ForegroundColor Blue
   $Excel.DisplayAlerts = $false
   $Workbook.Save()  # saves the file
