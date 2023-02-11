@@ -234,6 +234,7 @@ function CM {
     # this logic records history of changes
     if ($Remarks -eq "") {
         # $Col13.Value = $Col13.Value2
+        Write-Host "Do not proceed without remarks value, please select the repeat option and try again!`n Make sure to add value on remarks!" -ForegroundColor Red
     }
     else {
         if ([string]::IsNullorEmpty($Col13.Value2)) {

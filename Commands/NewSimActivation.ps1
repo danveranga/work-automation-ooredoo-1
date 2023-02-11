@@ -165,11 +165,11 @@ function AutoExitTimer {
   $Timer.Stop()
 }
 
-# run AutoExit
-AutoExitTimer
-
 # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
 TaskKill /IM Excel.exe /F
+
+# run AutoExit
+AutoExitTimer
 
 # garbage collection
 [GC]::Collect()
