@@ -1,7 +1,9 @@
 <# Using this command (custom cmdlet) will update the value of column 12 - OoredooMasterFile.xlsx named 'Request Completion Date' - to the date it was executed. Column 13 or Remarks will also be updated with a new added value stating what changes had happen. #>
 
 Write-Host "`nMANDATORY INSTRUCTION: MAKE SURE TO SAVE AND CLOSE ALL EXCEL FILES BEFORE PROCEEDING WITH THIS COMMAND!`n
-To cancel this command, press CTRL + C and then exit the Terminal.`n" -ForegroundColor DarkRed
+To cancel this command, press CTRL + C and then exit the Terminal.`n
+Don't forget to enter this command line [ TaskKill /IM Excel.exe /F ] after manually cancelling this command or go to task manager and manually kill the process of Excel application.`n
+Ignoring this could create an error in re-running this command or running other commands in particular.`n" -ForegroundColor DarkRed
 
 <# EXCEL - VBA OBJECTS #>
 # excel objects initiation and invocation
@@ -19,14 +21,15 @@ $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
 function ShowPendingActivities {
   Write-Host "PENDING REQUESTS:`n" -ForegroundColor Blue
   for ($i = 1; $i -le $LastUsedRow; $i++) {
-    if ($MainSheet.Cells($i, 12).Interior.ColorIndex -eq 6) {
-      $Column12 = $MainSheet.Cells($i, 12).Value2
-      $Column8 = $MainSheet.Cells($i, 8).Value2
-      $Column9 = $MainSheet.Cells($i, 9).Value2
-      $Column10 = $MainSheet.Cells($i, 10).Value2
-      $Column5 = $MainSheet.Cells($i, 5).Value2
-      Write-Host "# Request Number: $($Column12)" -ForegroundColor Cyan
-      Write-Host "Details: $($Column8) - $($Column9) - $($Column10) (with Plan $($Column5))`n" -ForegroundColor DarkMagenta
+    if ($MainSheet.Cells($i, 16).Interior.ColorIndex -eq 6) {
+      $Column16 = $MainSheet.Cells($i, 16).Value2  # request completion date (in this case the request number - if any)
+      $Column8 = $MainSheet.Cells($i, 8).Value2  # emp id of person responsible
+      $Column10 = $MainSheet.Cells($i, 10).Value2  # dept/loc/station of staff(s) responsible
+      $Column11 = $MainSheet.Cells($i, 11).Value2  # sim holder
+      $Column5 = $MainSheet.Cells($i, 5).Value2  # current plan letter
+      $Column7 = $MainSheet.Cells($i, 7).Value2  # current plan name
+      Write-Host "# Request Number: $($Column16)" -ForegroundColor Cyan
+      Write-Host "Details: $($Column8) $($Column10) - $($Column11) (with Plan $($Column5) - $($Column7))`n" -ForegroundColor DarkMagenta
     }
   }
 }
@@ -44,7 +47,7 @@ function RequestCompletor {
     # this automatically kills the current powershell session
     [Environment]::Exit(0)
   }
-  elseif ($MainSheet.Range("L2:L$($LastUsedRow)").Value2 -notcontains $RequestSelection) {
+  elseif ($MainSheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $RequestSelection) {
     Write-Host "Error: The request number you specified is not existing. Any changes will not be saved. Please run the command again." -ForegroundColor Red
     # automatically exits
     AutoExit
@@ -53,12 +56,13 @@ function RequestCompletor {
     # this automatically kills the current powershell session
     [Environment]::Exit(0)
   }
-  elseif ($MainSheet.Range("L2:L$($LastUsedRow)").Value2 -match $RequestSelection) {
-    $QueryDetails = $MainSheet.Range("L2:L$($LastUsedRow)").Find($RequestSelection).Row  # contains the specific row of the cell/s to modify
+  elseif ($MainSheet.Range("P2:P$($LastUsedRow)").Value2 -match $RequestSelection) {
+    $QueryDetails = $MainSheet.Range("P2:P$($LastUsedRow)").Find($RequestSelection).Row  # contains the specific row of the cell/s to modify
     $CurrentPendingMobileNumberRow = $MainSheet.Cells($QueryDetails, 4)
     $CurrentPlanRow = $MainSheet.Cells($QueryDetails, 5)
-    $CurrentDateCompletionRow = $MainSheet.Cells($QueryDetails, 12)
-    $CurrentRemarksRow = $MainSheet.Cells($QueryDetails, 13)
+    $CurrentPlanNameRow = $MainSheet.Cells($QueryDetails, 7)
+    $CurrentDateCompletionRow = $MainSheet.Cells($QueryDetails, 16)
+    $CurrentRemarksRow = $MainSheet.Cells($QueryDetails, 17)
 
     if ($CurrentPendingMobileNumberRow.Interior.ColorIndex -eq 6) {
       # used for new sim activation completion
@@ -68,21 +72,21 @@ function RequestCompletor {
         $CurrentPendingMobileNumberRow.Value = $DefineMobileNumber
         $CurrentDateCompletionRow.Value = $CurrentDate
 
-        # records the changes in remakrs
+        # records the changes in remarks
         if ([string]::IsNullorEmpty($CurrentRemarksRow.Value2)) {
-          $CurrentRemarksRow.Value = "$($CurrentDateTime) - Request was Completed; Service Number is $($DefineMobileNumber) with Plan $($CurrentPlanRow.Value2)"
+          $CurrentRemarksRow.Value = "$($CurrentDateTime) - Request was Completed; Service Number is $($DefineMobileNumber) with Plan $($CurrentPlanRow.Value2) - $($CurrentPlanNameRow.Value2)"
         }
         else {
-          $Column13Value = $CurrentRemarksRow.Value2
-          $CurrentRemarksRow.Value = "$($Column13Value)`n$($CurrentDateTime) - Request was Completed; Service Number is $($DefineMobileNumber) with Plan $($CurrentPlanRow.Value2)"
+          $Column17Value = $CurrentRemarksRow.Value2
+          $CurrentRemarksRow.Value = "$($Column17Value)`n$($CurrentDateTime) - Request was Completed; Service Number is $($DefineMobileNumber) with Plan $($CurrentPlanRow.Value2) - $($CurrentPlanNameRow.Value2)"
         }
 
-        # remove the color of the cell in column 4 and column 12
+        # remove the color of the cell in column 4 and column 16
         $CurrentPendingMobileNumberRow.Interior.ColorIndex = 0
         $CurrentDateCompletionRow.Interior.ColorIndex = 0
       }
       else {
-        Write-Host "The mobile number you entered is invalid!" -ForegroundColor Red
+        Write-Host "The mobile number you entered is invalid! Please try again." -ForegroundColor Red
         # automatically exits
         AutoExit
         # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
@@ -93,26 +97,26 @@ function RequestCompletor {
     }
     else {
       # used for plan change and custom modification completion
-      # leaves the mobile number as is but changes the value of column 12
+      # leaves the mobile number as is but changes the value of column 16
       $CurrentDateCompletionRow.Value = $CurrentDate
 
       # records the changes in remakrs
       if ([string]::IsNullorEmpty($CurrentRemarksRow.Value2)) {
-        $CurrentRemarksRow.Value = "$($CurrentDateTime) - Request was Completed with Plan $($CurrentPlanRow.Value2))"
+        $CurrentRemarksRow.Value = "$($CurrentDateTime) - Request was Completed. Current Plan Details is Plan $($CurrentPlanRow.Value2) - $($CurrentPlanNameRow.Value2)"
       }
       else {
-        $Column13Value = $CurrentRemarksRow.Value2
-        $CurrentRemarksRow.Value = "$($Column13Value)`n$($CurrentDateTime) - Request was Completed with Plan $($CurrentPlanRow.Value2)"
+        $Column17Value = $CurrentRemarksRow.Value2
+        $CurrentRemarksRow.Value = "$($Column17Value)`n$($CurrentDateTime) - Request was Completed. Current Plan Details is Plan $($CurrentPlanRow.Value2) - $($CurrentPlanNameRow.Value2)"
       }
 
-      # remove the color of the cell in column 12
+      # remove the color of the cell in column 16
       $CurrentDateCompletionRow.Interior.ColorIndex = 0
     }
   }
   # additional remarks feature
-  $DefaultCol13Value = $MainSheet.Cells($($QueryDetails), 13).Value2  # defualt value of Column 13
+  $DefaultCol17Value = $MainSheet.Cells($($QueryDetails), 17).Value2  # default value of Column 17
   $NewAdditionalRemarks = Read-Host "Other Remarks"
-  $MainSheet.Cells($($QueryDetails), 13).Value = "$($DefaultCol13Value); $($NewAdditionalRemarks)"
+  $MainSheet.Cells($($QueryDetails), 17).Value = "$($DefaultCol17Value); $($NewAdditionalRemarks)"
 }
 
 # timer function
@@ -161,7 +165,7 @@ function AutoExit {
 }
 
 # check first if there are pending requests
-$LRange = $MainSheet.Range("L2:L$($LastUsedRow)").Value2
+$LRange = $MainSheet.Range("P2:P$($LastUsedRow)").Value2
 if ($LRange -match "R-") {
   # show first the pending activities
   ShowPendingActivities
@@ -178,7 +182,7 @@ if ($LRange -match "R-") {
   }
 }
 else {
-  # must exit as this cmdlet has not purpose if there are no pending activities to be completed
+  # must exit as this cmdlet has no purpose if there are no pending activities to be completed
   Write-Host "There are no currently pending requests!`n" -ForegroundColor Green
   AutoExit  # no changes will be saved
 }

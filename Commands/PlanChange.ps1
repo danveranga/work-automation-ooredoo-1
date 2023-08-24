@@ -1,7 +1,9 @@
 <# This command (custom cmdlet) is used for upgrading or downgrading the plan of the specified mobile number by automatically changing Column 5 & 6 on the Ooredoo Master File based on the specified parameters. This will also automatically change the value of the Column 1 (Date Requested/Date Last Modified) to the date it was modified, while the Column 13 will automatically generate new details for the specified action (upgrade or downgrade). #>
 
 Write-Host "`nMANDATORY INSTRUCTION: MAKE SURE TO SAVE AND CLOSE ALL EXCEL FILES BEFORE PROCEEDING WITH THIS COMMAND!`n
-To cancel this command, press CTRL + C and then exit the Terminal.`n" -ForegroundColor DarkRed
+To cancel this command, press CTRL + C and then exit the Terminal.`n
+Don't forget to enter this command line [ TaskKill /IM Excel.exe /F ] after manually cancelling this command or go to task manager and manually kill the process of Excel application.`n
+Ignoring this could create an error in re-running this command or running other commands in particular.`n" -ForegroundColor DarkRed
 
 Write-Host "Warning: Please enter the exact mobile number that needs to be upgraded or downgraded. If you enter an invalid value, this command will keep running and prompt you for the correct mobile number until it matches a record in the database entries.`n" -ForegroundColor Cyan
 
@@ -38,32 +40,43 @@ else {
 # row indentifier
 $RowIndex = $QueryNumber.Row
 
-# all columns needed
-$Col1 = $MainSheet.Cells($RowIndex, 1)   # Date Requested/Date Last Modified
-$Col4 = $MainSheet.Cells($RowIndex, 4)   # MSISDN (Mobile Number)
-$Col5 = $MainSheet.Cells($RowIndex, 5)   # Current Plan
-$Col6 = $MainSheet.Cells($RowIndex, 6)   # Plan Rate
-$Col9 = $MainSheet.Cells($RowIndex, 9)   # Name
-$Col11 = $MainSheet.Cells($RowIndex, 11) # Staff Grade
-$Col12 = $MainSheet.Cells($RowIndex, 12) # Request Completion Date
-$Col13 = $MainSheet.Cells($RowIndex, 13) # Remarks
+# all columns
+$Col1 = $MainSheet.Cells($RowIndex, 1)   # ColA - Date Requested/Date Last Modified
+# Column 2 / B is not used in this command.
+# Column 3 / C is not used in this command.
+$Col4 = $MainSheet.Cells($RowIndex, 4)   # ColD - Mobile Number
+$Col5 = $MainSheet.Cells($RowIndex, 5)   # ColE - Plan Letter
+$Col6 = $MainSheet.Cells($RowIndex, 6)   # ColF - Plan Rate
+$Col7 = $MainSheet.Cells($RowIndex, 7)   # ColG - Plan Name
+# Column 8 / H is not used in this command.
+# Column 9 / I is not used in this command.
+# Column 10 / J is not used in this command.
+$Col11 = $MainSheet.Cells($RowIndex, 11) # ColK - Sim Holder
+# Column 12 / L is not used in this command.
+# Column 13 / M is not used in this command.
+$Col14 = $MainSheet.Cells($RowIndex, 14) # ColN - Staff Grade
+# Column 15 / O is not used in this command.
+$Col16 = $MainSheet.Cells($RowIndex, 16) # ColP - Request Completion Date
+$Col17 = $MainSheet.Cells($RowIndex, 17) # ColQ - Remarks (Activity Log)
+# Column 18 / R is not used in this command.
 
 # date and time details used for remarks
 $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
 
-# default value of Column 5: Ooredoo Plan
+# default value of Column 5: Ooredoo Plan Letter
 $PlanDefaultValue = $Col5.Value2
+$AamaliPlanDefaultValue = $Col7.Value2
 
 # save the changes Upgrade Function has done
 function ProceedUpgrade {
 
   # this will record the history of upgrade changes
-  if ([string]::IsNullorEmpty($Col13.Value2)) {
-    $Col13.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) Upgraded to Plan $($Col5.Value2)"
+  if ([string]::IsNullorEmpty($Col17.Value2)) {
+    $Col17.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Upgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
   }
   else {
-    $Column13Value = $Col13.Value2
-    $Col13.Value = "$($Column13Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) Upgraded to Plan $($Col5.Value2)"
+    $Column17Value = $Col17.Value2
+    $Col17.Value = "$($Column17Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Upgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
   }
 
   $Workbook.Save()  # saves the file
@@ -78,12 +91,12 @@ function ProceedUpgrade {
 # save the changes Downgrade Function has done
 function ProceedDowngrade {
   # this will record the history of downgrade changes
-  if ([string]::IsNullorEmpty($Col13.Value2)) {
-    $Col13.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) Downgraded to Plan $($Col5.Value2)"
+  if ([string]::IsNullorEmpty($Col17.Value2)) {
+    $Col17.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Downgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
   }
   else {
-    $Column13Value = $Col13.Value2
-    $Col13.Value = "$($Column13Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) Downgraded to Plan $($Col5.Value2)"
+    $Column17Value = $Col17.Value2
+    $Col17.Value = "$($Column17Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Downgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
   }
 
   $Workbook.Save()  # saves the file
@@ -118,27 +131,25 @@ function Upgrade {
 
   # plan upgradation logic
   switch ($UpgradeToPlan) {
-    "B" { $Col5.Value = "B"; $Col6.Value = "90" }
-    "C" { $Col5.Value = "C"; $Col6.Value = "90" }
-    "D" { $Col5.Value = "D"; $Col6.Value = "110.50" }
-    "E" { $Col5.Value = "E"; $Col6.Value = "130" }
-    "F" { $Col5.Value = "F"; $Col6.Value = "135" }
-    "G" { $Col5.Value = "G"; $Col6.Value = "195" }
-    "H" { $Col5.Value = "H"; $Col6.Value = "360" }
+    "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
+    "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
+    "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
+    "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
+    "F" { $Col5.Value = "F"; $Col6.Value = "325"; $Col7.Value = "Aamali 500" }
 
-    Default { $Col5.Value = $PlanDefaultValue }  # nothing to do; remains the same
+    Default { $Col5.Value = $PlanDefaultValue; Write-Host "Invalid Plan Input; No Changes have been Made`nYou either repeat or cancel then start again." -ForegroundColor DarkBlue }  # nothing to do; remains the same
   }
 
   # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-  $Col12.Interior.ColorIndex = 6
+  $Col16.Interior.ColorIndex = 6
   for ($i = 1; $i -lt $LastUsedRow; $i++) {
-    $Col12Value = "R-$($i)"
-    if ($Mainsheet.Range("L2:L$($LastUsedRow)").Value2 -notcontains $Col12Value) {
-      $Col12.Value = $Col12Value
+    $Col16Value = "R-$($i)"
+    if ($Mainsheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $Col16Value) {
+      $Col16.Value = $Col16Value
       break
     }
     else {
-      $Col12.Value = ""
+      $Col16.Value = ""
     }
   }
 }
@@ -157,19 +168,27 @@ function Downgrade {
 
   # plan downgradation logic
   switch ($DowngradeToPlan) {
-    "A" { $Col5.Value = "A"; $Col6.Value = "58.50" }
-    "B" { $Col5.Value = "B"; $Col6.Value = "90" }
-    "C" { $Col5.Value = "C"; $Col6.Value = "90" }
-    "D" { $Col5.Value = "D"; $Col6.Value = "110.50" }
-    "E" { $Col5.Value = "E"; $Col6.Value = "130" }
-    "F" { $Col5.Value = "F"; $Col6.Value = "135" }
-    "G" { $Col5.Value = "G"; $Col6.Value = "195" }
+    "A" { $Col5.Value = "A"; $Col6.Value = "50.05"; $Col7.Value = "Aamali 65" }
+    "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
+    "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
+    "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
+    "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
 
-    Default { $Col5.Value = $PlanDefaultValue }  # nothing to do; remains the same
+    Default { $Col5.Value = $PlanDefaultValue; Write-Host "Invalid Plan Input; No Changes have been Made`nYou either repeat or cancel then start again." -ForegroundColor DarkBlue }  # nothing to do; remains the same
   }
 
   # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-  $Col12.Interior.ColorIndex = 6
+  $Col16.Interior.ColorIndex = 6
+  for ($i = 1; $i -lt $LastUsedRow; $i++) {
+    $Col16Value = "R-$($i)"
+    if ($Mainsheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $Col16Value) {
+      $Col16.Value = $Col16Value
+      break
+    }
+    else {
+      $Col16.Value = ""
+    }
+  }
 }
 
 # function that displays the necessary information of card holder
@@ -177,46 +196,46 @@ function InfoDisplay {
   function EligiblePlan {
     # plan eligibility values
     $NA = "Not Applicable as per the ACIFM Staff Grades and Benefits Section"
-    $AC = "Plan A to Plan C only"
+    $AB = "Plan A to Plan B only"
     $AD = "Plan A to Plan D only"
-    $AG = "Plan A to Plan G only"
-    $AH = "Plan A to Plan H"
+    $AE = "Plan A to Plan E only"
+    $AF = "Plan A to Plan F"
 
     # switch statement conditions
-    switch ($Col11.Value2) {
+    switch ($Col14.Value2) {
       "S1" { $NA }
       "S2" { $NA }
       "T1" { $NA }
       "T2" { $NA }
       "T3" { $NA }
 
-      "S3" { $AC }
+      "S3" { $AB }
 
       "S4" { $AD }
       "T4A" { $AD }
 
-      "T4B" { $AG }
-      "T4C" { $AG }
-      "M1A" { $AG }
+      "T4B" { $AE }
+      "T4C" { $AE }
+      "M1A" { $AE }
 
-      "M1B" { $AH }
-      "M1C" { $AH }
-      "M2A" { $AH }
-      "M2B" { $AH }
-      "M3" { $AH }
-      "M4" { $AH }
+      "M1B" { $AF }
+      "M1C" { $AF }
+      "M2A" { $AF }
+      "M2B" { $AF }
+      "M3" { $AF }
+      "M4" { $AF }
 
-      Default { "I don't know about that because the Grade Value is ' $($Col11.Value2) '." }
+      Default { "I don't know about that because the Grade Value is ' $($Col14.Value2) '. You may manually check the Ooredoo Master File.🤷🏼‍♂️" }
     }
     return
   }
 
   # display output format
-  Write-Host "`n::::: MASTER FILE DETAILS :::::`n
-Sim Holder:              $($Col9.Value2)
+  Write-Host "`n::::: OOREDOO MASTER FILE DETAILS :::::`n
+Sim Holder:              $($Col11.Value2)
 Mobile Number:           $($Col4.Value2)
 Current Ooredoo Plan:    $PlanDefaultValue
-Employee Grade:          $($Col11.Value2)
+Employee Grade:          $($Col14.Value2)
 Plan Eligibility:        $(EligiblePlan)`n" -ForegroundColor Magenta
 }
 
@@ -242,12 +261,12 @@ function ActionLogic {
 # initial run
 ActionLogic
 
-# initial confirmation prompt inside a conditional statement
+# confirmation prompt inside a conditional statement
 if ($Action -eq "U") {
-  $Confirmation = Read-Host "Are you sure with the changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
+  $Confirmation = Read-Host "Are you sure with the upgrade changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
 }
 elseif ($Action -eq "D") {
-  $Confirmation = Read-Host "Are you sure with the changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
+  $Confirmation = Read-Host "Are you sure with the downgrade changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
 }
 else {
   Cancel
@@ -263,7 +282,7 @@ function ConfirmationLogic {
     }
   }
   elseif ($Confirmation -eq "R") {
-    $Col5.Value = $PlanDefaultValue
+    $Col5.Value = $PlanDefaultValue  # needed to repeat the process with a clean slate
   }
   else {
     Cancel
@@ -287,7 +306,7 @@ while ($Confirmation -eq "R") {
     ConfirmationLogic
   }
   else {
-    $Confirmation = "C"
+    $Confirmation = "C"  # needed to change the value of 'Confirmation' Variable to break from the while loop
     Cancel
   }
 }
@@ -313,11 +332,11 @@ function AutoExitTimer {
   $Timer.Stop()
 }
 
-# run AutoExit
-AutoExitTimer
-
 # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
 TaskKill /IM Excel.exe /F
+
+# run AutoExit
+AutoExitTimer
 
 # garbage collection
 [GC]::Collect()

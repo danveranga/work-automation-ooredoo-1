@@ -1,7 +1,9 @@
 <# Using this command (custom cmdlet) will modify the specified row on the Ooredoo Master File and automatically change the value of the 1st column (Date Requested/Date Last Modified) to the date it was modified, it is recommended to always update the remarks by specifying what type of changes/modification occured. #>
 
 Write-Host "`nMANDATORY INSTRUCTION: MAKE SURE TO SAVE AND CLOSE ALL EXCEL FILES BEFORE PROCEEDING WITH THIS COMMAND!`n
-To cancel this command, press CTRL + C and then exit the Terminal.`n" -ForegroundColor DarkRed
+To cancel this command, press CTRL + C and then exit the Terminal.`n
+Don't forget to enter this command line [ TaskKill /IM Excel.exe /F ] after manually cancelling this command or go to task manager and manually kill the process of Excel application.`n
+Ignoring this could create an error in re-running this command or running other commands in particular.`n" -ForegroundColor DarkRed
 
 Write-Host "Warning: Please enter the exact mobile number that needs to be modified. If you enter an invalid value, this command will keep running and prompting you for the correct mobile number until it matches a record in the database entries.`n" -ForegroundColor Cyan
 
@@ -39,42 +41,51 @@ else {
 $RowIndex = $QueryNumber.Row
 
 # all columns
-$Col1 = $MainSheet.Cells($RowIndex, 1)   # Date Requested/Date Last Modified
-$Col2 = $MainSheet.Cells($RowIndex, 2)   # ICCID
-$Col3 = $MainSheet.Cells($RowIndex, 3)   # Request Type
-$Col4 = $MainSheet.Cells($RowIndex, 4)   # MSISDN (Mobile Number)
-$Col5 = $MainSheet.Cells($RowIndex, 5)   # Current Plan
-$Col6 = $MainSheet.Cells($RowIndex, 6)   # Plan Rate
-$Col7 = $MainSheet.Cells($RowIndex, 7)   # Category/Location
-$Col8 = $MainSheet.Cells($RowIndex, 8)   # Employee No./Department
-$Col9 = $MainSheet.Cells($RowIndex, 9)   # Name
-$Col10 = $MainSheet.Cells($RowIndex, 10) # Designation
-$Col11 = $MainSheet.Cells($RowIndex, 11) # Staff Grade
-$Col12 = $MainSheet.Cells($RowIndex, 12) # Request Completion Date
-$Col13 = $MainSheet.Cells($RowIndex, 13) # Remarks
+$Col1 = $MainSheet.Cells($RowIndex, 1)   # ColA - Date Requested/Date Last Modified
+$Col2 = $MainSheet.Cells($RowIndex, 2)   # ColB - ICCID
+$Col3 = $MainSheet.Cells($RowIndex, 3)   # ColC - Request Type
+$Col4 = $MainSheet.Cells($RowIndex, 4)   # ColD - Mobile Number
+$Col5 = $MainSheet.Cells($RowIndex, 5)   # ColE - Plan Letter
+$Col6 = $MainSheet.Cells($RowIndex, 6)   # ColF - Plan Rate
+$Col7 = $MainSheet.Cells($RowIndex, 7)   # ColG - Plan Name
+$Col8 = $MainSheet.Cells($RowIndex, 8)   # ColH - Employee No. (Person Responsible for Sim Usage)
+# Column 9 / I is not used in this command.
+$Col10 = $MainSheet.Cells($RowIndex, 10) # ColJ - Department/Location/Station Responsible for Sim Usage
+$Col11 = $MainSheet.Cells($RowIndex, 11) # ColK - Sim Holder
+$Col12 = $MainSheet.Cells($RowIndex, 12) # ColL - User Designation
+$Col13 = $MainSheet.Cells($RowIndex, 13) # ColM - User Department
+$Col14 = $MainSheet.Cells($RowIndex, 14) # ColN - Staff Grade
+$Col15 = $MainSheet.Cells($RowIndex, 15) # ColO - Current Employment Status
+$Col16 = $MainSheet.Cells($RowIndex, 16) # ColP - Request Completion Date
+$Col17 = $MainSheet.Cells($RowIndex, 17) # ColQ - Remarks (Activity Log)
+$Col18 = $MainSheet.Cells($RowIndex, 18) # ColR - Sim Card Status
 
 # date and time definitions
 $CurrentDate = Get-Date -Format "dd-MMM-yyyy"
 $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
 
 # special patch for repeated remarks
-$RemarksOriginalValue = $Col13.Value2
+$RemarksOriginalValue = $Col17.Value2
 
 # function that displays the necessary information of sim holder
 function InfoDisplay {
     # display output format
-    Write-Host "`n::::: MASTER FILE DETAILS :::::`n
-Sim Holder:               $($Col9.Value2)
-Employee No/Department:   $($Col8.Value2)
-Designation:              $($Col10.Value2)
-ICCID:                    $($Col2.Value2)
-Mobile Number:            $($Col4.Value2)
-Type:                     $($Col3.Value2)
-Current Ooredoo Plan:     $($Col5.Value2)
-Category/Location:        $($Col7.Value2)
-Employee Grade:           $($Col11.Value2)
+    Write-Host "`n::::: OOREDOO MASTER FILE DETAILS :::::`n
+Sim Holder:                 $($Col11.Value2)
+Employee ID:                $($Col8.Value2)
+User Department:            $($Col13.Value2)
+User Designation:           $($Col12.Value2)
+User Staff Grade:           $($Col14.Value2)
+Current Employment Status:  $($Col15.Value2)
+
+ICCID:                      $($Col2.Value2)
+Request Type:               $($Col3.Value2)
+Mobile Number:              $($Col4.Value2)
+Current Ooredoo Plan:       $($Col5.Value2) - $($Col7.Value2)
+Current Sim Card Status:    $($Col18.Value2)
+
 `nRemarks:
-$($Col13.Value2)`n" -ForegroundColor Magenta
+$($Col17.Value2)`n" -ForegroundColor Magenta
 }
 
 # diplay the information first
@@ -93,26 +104,20 @@ function CM {
         # mobile number
         [Parameter(Mandatory = $true)]
         $MobileNumber,
-        # ooredoo plan/current plan
+        # current ooredoo plan
         [Parameter(
             Mandatory = $true,
-            HelpMessage = "A-H only")]
+            HelpMessage = "A-F only")]
         $OoredooPlan,
-        # category/location
+        # sim holder - specific employee number
         [Parameter(Mandatory = $true)]
-        $Category_Location,
-        # employee number or department
+        $Option1_SimHolder_EmpNo,
+        # sim holder - department/location/station
         [Parameter(Mandatory = $true)]
-        $EmpNo_Department,
-        # name
+        $Option2_SimHolder_DeptLocationStation,
+        # specific department of sim holder
         [Parameter(Mandatory = $true)]
-        $Name,
-        # designation
-        [Parameter(Mandatory = $true)]
-        $Designation,
-        # grade
-        [Parameter(Mandatory = $true)]
-        $EmployeeGrade,
+        $Department,
         # remarks
         [Parameter(Mandatory = $true)]
         $Remarks
@@ -124,6 +129,7 @@ function CM {
     # cm logic
     if ($ICCID -eq "") {
         # $Col2.Value = $Col2.Value
+        # nothing happens, this an unecessary method of doing this workflow, might be changed in the future
     }
     else {
         $Col2.Value = $ICCID
@@ -146,103 +152,88 @@ function CM {
     if ($OoredooPlan -eq "") {
         # $Col5.Value = $Col5.Value
         # $Col6.Value = $Col6.Value
+        # $Col7.Value = $Col7.Value
     }
     elseif ($OoredooPlan -eq "A") {
         $Col5.Value = "A"
-        $Col6.Value = "58.50"
+        $Col6.Value = "50.05"
+        $Col7.Value = "Aamali 65"
     }
     elseif ($OoredooPlan -eq "B") {
         $Col5.Value = "B"
-        $Col6.Value = "90"
+        $Col6.Value = "72"
+        $Col7.Value = "Aamali 90"
     }
     elseif ($OoredooPlan -eq "C") {
         $Col5.Value = "C"
-        $Col6.Value = "90"
+        $Col6.Value = "104"
+        $Col7.Value = "Aamali 130"
     }
     elseif ($OoredooPlan -eq "D") {
         $Col5.Value = "D"
-        $Col6.Value = "110.50"
+        $Col6.Value = "120"
+        $Col7.Value = "Aamali 150"
     }
     elseif ($OoredooPlan -eq "E") {
         $Col5.Value = "E"
-        $Col6.Value = "130"
+        $Col6.Value = "175"
+        $Col7.Value = "Aamali 250"
     }
     elseif ($OoredooPlan -eq "F") {
         $Col5.Value = "F"
-        $Col6.Value = "135"
-    }
-    elseif ($OoredooPlan -eq "G") {
-        $Col5.Value = "G"
-        $Col6.Value = "195"
-    }
-    elseif ($OoredooPlan -eq "H") {
-        $Col5.Value = "H"
-        $Col6.Value = "360"
+        $Col6.Value = "325"
+        $Col7.Value = "Aamali 500"
     }
     else {
-        Write-Host "Error on Ooredoo Plan Input Value. Please Input A-H Only! Repeat the Process!!!" -ForegroundColor DarkRed
+        Write-Host "Error on Ooredoo Plan Input Value. Please Input A-F Only! Repeat the Process!!!" -ForegroundColor DarkRed
     }
 
-    if ($Category_Location -eq "") {
-        # $Col7.Value = $Col7.Value
-    }
-    else {
-        $Col7.Value = $Category_Location
-    }
-
-    if ($EmpNo_Department -eq "") {
+    if ($Option1_SimHolder_EmpNo -eq "") {
         # $Col8.Value = $Col8.Value
     }
     else {
-        $Col8.Value = $EmpNo_Department
+        $Col8.Value = $Option1_SimHolder_EmpNo
     }
 
-    if ($Name -eq "") {
-        # $Col8.Value = $Col8.Value
+    if ($Option2_SimHolder_DeptLocationStation -eq "") {
+        # $Col10.Value = $Col10.Value
     }
     else {
-        $Col9.Value = $Name
+        $Col10.Value = $Option2_SimHolder_DeptLocationStation
     }
 
-    if ($Designation -eq "") {
-        # $Col8.Value = $Col8.Value
+    if ($Department -eq "") {
+        # $Col13.Value = $Col13.Value
     }
     else {
-        $Col10.Value = $Designation
-    }
-
-    if ($EmployeeGrade -eq "") {
-        # $Col8.Value = $Col8.Value
-    }
-    else {
-        $Col11.Value = $EmployeeGrade
+        $Col13.Value = $Department
     }
 
     # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-    $Col12.Interior.ColorIndex = 6
+    $Col16.Interior.ColorIndex = 6
     for ($i = 1; $i -lt $LastRow; $i++) {
-        $Col12Value = "R-$($i)"
-        if ($Mainsheet.Range("L2:L$($LastRow)").Value2 -notcontains $Col12Value) {
-            $Col12.Value = $Col12Value
+        $Col16Value = "R-$($i)"
+        if ($Mainsheet.Range("P2:P$($LastRow)").Value2 -notcontains $Col16Value) {
+            $Col16.Value = $Col16Value
             break
         }
         else {
-            $Col12.Value = ""
+            $Col16.Value = ""
         }
     }
 
-    # this logic records history of changes
+    # this logic records history of changes which creates activity log
     if ($Remarks -eq "") {
-        # $Col13.Value = $Col13.Value2
-        Write-Host "Do not proceed without remarks value, please select the repeat option and try again!`n Make sure to add value on remarks!" -ForegroundColor Red
+        # $Col17.Value = $Col17.Value2
+        Write-Host "Do not proceed without remarks value, please select the repeat option and try again!`nMake sure to add value on remarks!" -ForegroundColor Red
     }
     else {
-        if ([string]::IsNullorEmpty($Col13.Value2)) {
-            $Col13.Value = "$CurrentDateTime - $Remarks"
+        if ([string]::IsNullorEmpty($Col17.Value2)) {
+            $Col17.Value = "$CurrentDateTime - $Remarks"
         }
         else {
-            $Column13Value = $Col13.Value2
-            $Col13.Value = "$Column13Value`n$CurrentDateTime - $Remarks"
+            $Column17Value = $Col17.Value2
+            $Col17.Value = "$Column17Value`n$CurrentDateTime - $Remarks"
         }
     }
 }
@@ -250,7 +241,7 @@ function CM {
 function Proceed {
 
     # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-    $Col12.Interior.ColorIndex = 6
+    $Col16.Interior.ColorIndex = 6
     
     $Workbook.Save()  # saves the file
     $Excel.Quit()  # close excel
@@ -270,7 +261,7 @@ $Confirmation = Read-Host "Are you sure you want to proceed with this informatio
 
 function ConfirmFunc {
     if ($Confirmation -eq "R") {
-        $Col13.Value = $RemarksOriginalValue
+        $Col17.Value = $RemarksOriginalValue
         CM
     }
     elseif ($Confirmation -eq "Y") {
@@ -287,7 +278,7 @@ function ConfirmFunc {
 # run ConfirmFunc
 ConfirmFunc
 
-# repeat loop until proceed or cancel have been selected
+# looping through 'ConfirmFunc' Function until 'proceed' or 'cancel' option have been selected
 while ($Confirmation -eq "R") {
     $Confirmation = Read-Host "Are you reaalllyyy sure you want to proceed with this information? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
     # loop through this function
