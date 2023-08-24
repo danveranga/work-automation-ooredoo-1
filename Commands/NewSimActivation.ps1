@@ -1,7 +1,9 @@
 <# Using this command (custom cmdlet) will create a new instace of data to the excel database. This will also automatically add the value of the 1st column (Date Requested/Date Last Modified) to the date it was created, it is recommended to put the specific details of the new sim to be activated on the Remarks Column. #>
 
 Write-Host "`nMANDATORY INSTRUCTION: MAKE SURE TO SAVE AND CLOSE ALL EXCEL FILES BEFORE PROCEEDING WITH THIS COMMAND!`n
-To cancel this command, press CTRL + C and then exit the Terminal.`n" -ForegroundColor DarkRed
+To cancel this command, press CTRL + C and then exit the Terminal.`n
+Don't forget to enter this command line [ TaskKill /IM Excel.exe /F ] after manually cancelling this command or go to task manager and manually kill the process of Excel application.`n
+Ignoring this could create an error in re-running this command or running other commands in particular.`n" -ForegroundColor DarkRed
 
 <# EXCEL - VBA OBJECTS #>
 # excel objects initiation and invocation
@@ -13,19 +15,24 @@ $LastUsedRow = $MainSheet.UsedRange.Rows.Count
 $LastUnusedRow = $LastUsedRow + 1
 
 # all columns
-$Col1 = $MainSheet.Cells($LastUnusedRow, 1)   # Date Requested/Date Last Modified
-$Col2 = $MainSheet.Cells($LastUnusedRow, 2)   # ICCID
-$Col3 = $MainSheet.Cells($LastUnusedRow, 3)   # Request Type
-$Col4 = $MainSheet.Cells($LastUnusedRow, 4)   # Mobile Number
-$Col5 = $MainSheet.Cells($LastUnusedRow, 5)   # Current Plan
-$Col6 = $MainSheet.Cells($LastUnusedRow, 6)   # Plan Rate
-$Col7 = $MainSheet.Cells($LastUnusedRow, 7)   # Category/Location
-$Col8 = $MainSheet.Cells($LastUnusedRow, 8)   # Employee No./Department
-$Col9 = $MainSheet.Cells($LastUnusedRow, 9)   # Name
-$Col10 = $MainSheet.Cells($LastUnusedRow, 10) # Designation
-$Col11 = $MainSheet.Cells($LastUnusedRow, 11) # Staff Grade
-$Col12 = $MainSheet.Cells($LastUnusedRow, 12) # Request Completion Date
-$Col13 = $MainSheet.Cells($LastUnusedRow, 13) # Remarks
+$Col1 = $MainSheet.Cells($LastUnusedRow, 1)   # ColA - Date Requested/Date Last Modified
+$Col2 = $MainSheet.Cells($LastUnusedRow, 2)   # ColB - ICCID
+$Col3 = $MainSheet.Cells($LastUnusedRow, 3)   # ColC - Request Type
+$Col4 = $MainSheet.Cells($LastUnusedRow, 4)   # ColD - Mobile Number
+$Col5 = $MainSheet.Cells($LastUnusedRow, 5)   # ColE - Plan Letter
+$Col6 = $MainSheet.Cells($LastUnusedRow, 6)   # ColF - Plan Rate
+$Col7 = $MainSheet.Cells($LastUnusedRow, 7)   # ColG - Plan Name
+$Col8 = $MainSheet.Cells($LastUnusedRow, 8)   # ColH - Employee No. (Person Responsible for Sim Usage)
+# Column 9 / I is not used in this command.
+$Col10 = $MainSheet.Cells($LastUnusedRow, 10) # ColJ - Department/Location/Station Responsible for Sim Usage
+# Column 11 / K is not used in this command.
+# Column 12 / L is not used in this command.
+$Col13 = $MainSheet.Cells($LastUnusedRow, 13) # ColM - User Department
+# Column 14 / N is not used in this command.
+# Column 15 / O is not used in this command.
+$Col16 = $MainSheet.Cells($LastUnusedRow, 16) # ColP - Request Completion Date
+$Col17 = $MainSheet.Cells($LastUnusedRow, 17) # ColQ - Remarks (Activity Log)
+$Col18 = $MainSheet.Cells($LastUnusedRow, 18) # ColR - Sim Card Status
 
 # date and time definitions
 $CurrentDate = Get-Date -Format "dd-MMM-yyyy"
@@ -49,56 +56,52 @@ function NewOoredooAccount {
 
   $Col4.Interior.ColorIndex = 6
 
-  $CurrentPlan = Read-Host "Ooredoo Plan to Apply (A-H only)"
+  $CurrentPlan = Read-Host "Ooredoo Plan to Apply (A-F only)"
 
-  $OoredooPlans = @("A", "B", "C", "D", "E", "F", "G", "H")
+  $OoredooPlans = @("A", "B", "C", "D", "E", "F")
 
   while ($CurrentPlan -notin $OoredooPlans) {
-    $CurrentPlan = Read-Host "Your Input Plan is Invalid. Select Ooredoo Plan Again to Apply (A-H only)"
+    $CurrentPlan = Read-Host "Your Input Plan is Invalid. Select a Valid Ooredoo Plan Again to Apply (A-F only)"
   }
 
   switch ($CurrentPlan) {
-    "A" { $Col5.Value = "A"; $Col6.Value = "58.50" }
-    "B" { $Col5.Value = "B"; $Col6.Value = "90" }
-    "C" { $Col5.Value = "C"; $Col6.Value = "90" }
-    "D" { $Col5.Value = "D"; $Col6.Value = "110.50" }
-    "E" { $Col5.Value = "E"; $Col6.Value = "130" }
-    "F" { $Col5.Value = "F"; $Col6.Value = "135" }
-    "G" { $Col5.Value = "G"; $Col6.Value = "195" }
-    "H" { $Col5.Value = "H"; $Col6.Value = "360" }
+    "A" { $Col5.Value = "A"; $Col6.Value = "50.05"; $Col7.Value = "Aamali 65" }
+    "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
+    "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
+    "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
+    "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
+    "F" { $Col5.Value = "F"; $Col6.Value = "325"; $Col7.Value = "Aamali 500" }
 
     Default { $Col5.Value = ""; $Col6.Value = "" }
   }
 
-  $CategoryLocation = Read-Host "Enter the Category or Location"
-  $Col7.Value = $CategoryLocation
+  $EmpID = Read-Host "Enter the Employee No. of Person Responsible for Sim Usage"
+  $Col8.Value = $EmpID
 
-  $EmpID_Department = Read-Host "Employee ID or Department of Ooredoo User"
-  $Col8.Value = $EmpID_Department
+  Write-Host "Reminder: If Employee No. of Person Responsible for Sim Usage is not necessary, you should put their Department, Location or Station instead in the next field."
+  $DeptLocStation = Read-Host "Enter the Department, Location or Station of the Ooredoo User/s"
+  $Col10.Value = $DeptLocStation
 
-  $EmpName = Read-Host "Name of Ooredoo User"
-  $Col9.Value = $EmpName
+  $UserDept = Read-Host "Enter the Department Name"
+  $Col13.Value = $UserDept
 
-  $Designation = Read-Host "Designation of Ooredoo User"
-  $Col10.Value = $Designation
-
-  $StaffGrade = Read-Host "Staff Grade of $($EmpID_Department) - $($EmpName)"
-  $Col11.Value = $StaffGrade
-
-  $Col12.Interior.ColorIndex = 6
+  $Col16.Interior.ColorIndex = 6
   for ($i = 1; $i -lt $LastUsedRow; $i++) {
-    $Col12Value = "R-$($i)"
-    if ($Mainsheet.Range("L2:L$($LastUsedRow)").Value2 -notcontains $Col12Value) {
-      $Col12.Value = $Col12Value
+    # a loop used to create a unique request ID which will be used for 'Request Completor' command.
+    $Col16Value = "R-$($i)"
+    if ($Mainsheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $Col16Value) {
+      $Col16.Value = $Col16Value
       break
     }
     else {
-      $Col12.Value = ""
+      $Col16.Value = ""
     }
   }
 
-  $Remarks = Read-Host "Other Remarks (optional)"
-  $Col13.Value = "$($CurrentDateTime) - Ooredoo Sim Requested with Plan $($CurrentPlan); $($Remarks)"
+  $ActLog = Read-Host "Other Remarks to Add (optional)"
+  $Col17.Value = "$($CurrentDateTime) - Ooredoo Sim Requested with Plan $($CurrentPlan) - $($Col7.Value2) with the rate of $($Col6.Value2) QAR; $($ActLog)"
+
+  $Col18.Value = "ACTIVE"
 }
 
 # run main function
@@ -117,7 +120,7 @@ function Proceed {
 }
 
 # logical confirmation
-$Confirmation = Read-Host "Are you sure you want to proceed with this information provided? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
+$Confirmation = Read-Host "Are you sure you want to proceed with the information provided? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
 
 function ConfirmFunc {
   if ($Confirmation -eq "R") {
@@ -130,14 +133,14 @@ function ConfirmFunc {
     # this will cancel the whole process of this command and to make sure Excel File is always closed but not saved though
     $Excel.DisplayAlerts = $false  # prevents excel application pop-ups
     $Excel.Quit()  # close excel
-    $Excel = $null  # release the process
+    $Excel = $null  # release the process in the memory
   }
 }
 
 # run ConfirmFunc
 ConfirmFunc
 
-# repeat loop until proceed or cancel have been selected
+# looping through 'ConfirmFunc' Function until 'proceed' or 'cancel' option have been selected
 while ($Confirmation -eq "R") {
   $Confirmation = Read-Host "Are you reaalllyyy sure you want to proceed with this information provided? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
   # loop through this function
