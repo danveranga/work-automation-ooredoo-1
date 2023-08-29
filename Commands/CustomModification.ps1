@@ -67,6 +67,62 @@ $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
 # special patch for repeated remarks
 $RemarksOriginalValue = $Col17.Value2
 
+# timer used before exiting the terminal session
+function AutoExitTimer {
+    Write-Host "This terminal will automatically close after 5 seconds . . . . ." -ForegroundColor DarkRed
+
+    $Timer = [Diagnostics.Stopwatch]::StartNew()
+
+    $Timer.Start()
+
+    while ($Timer.Elapsed.Seconds -le 5) {
+        # wait for 5 seconds
+    }
+
+    Write-Host "Farewell!!!" -ForegroundColor Blue
+
+    while ($Timer.Elapsed.Seconds -le 7) {
+        # wait for another 2 seconds
+    }
+
+    $Timer.Stop()
+}
+
+# pre auto exit function
+function PreAutoExit {  
+    # this will cancel the whole process of this command and to make sure Excel File is always closed but not saved though
+    $Excel.DisplayAlerts = $false
+    $Excel.Quit()  # close excel
+    $Excel = $null  # release the process
+  
+    # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
+    TaskKill /IM Excel.exe /F
+  
+    # garbage collection
+    [GC]::Collect()
+  
+    # run timer
+    Timer
+  
+    # this automatically kills the current powershell session
+    [Environment]::Exit(0)
+}
+
+# post auto exit function
+function PostAutoExit {
+    # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
+    TaskKill /IM Excel.exe /F
+  
+    # garbage collection
+    [GC]::Collect()
+  
+    # run timer
+    Timer
+  
+    # this automatically kills the current powershell session
+    [Environment]::Exit(0)
+}
+
 # function that displays the necessary information of sim holder
 function InfoDisplay {
     # display output format
@@ -91,229 +147,205 @@ $($Col17.Value2)`n" -ForegroundColor Magenta
 # diplay the information first
 InfoDisplay
 
-# main function
-function CM {
+if ($Col18.Value2 -eq "INACTIVE") {
+    Write-Host "`nThe mobile number you entered is already inactive. This operation is being cancelled.`n" -ForegroundColor Red
+    PreAutoExit  # automatically exits the application
+}
+else {
+    # main function
+    function CM {
 
-    param (
-        # ICCID parameter
-        [Parameter(Mandatory = $true)]
-        $ICCID,
-        # request type: mobile (default value) or internet
-        [Parameter(Mandatory = $true)]
-        $RequestType,
-        # mobile number
-        [Parameter(Mandatory = $true)]
-        $MobileNumber,
-        # current ooredoo plan
-        [Parameter(
-            Mandatory = $true,
-            HelpMessage = "A-F only")]
-        $OoredooPlan,
-        # sim holder - specific employee number
-        [Parameter(Mandatory = $true)]
-        $Option1_SimHolder_EmpNo,
-        # sim holder - department/location/station
-        [Parameter(Mandatory = $true)]
-        $Option2_SimHolder_DeptLocationStation,
-        # specific department of sim holder
-        [Parameter(Mandatory = $true)]
-        $Department,
-        # remarks
-        [Parameter(Mandatory = $true)]
-        $Remarks
-    )
+        param (
+            # ICCID parameter
+            [Parameter(Mandatory = $true)]
+            $ICCID,
+            # request type: mobile (default value) or internet
+            [Parameter(Mandatory = $true)]
+            $RequestType,
+            # mobile number
+            [Parameter(Mandatory = $true)]
+            $MobileNumber,
+            # current ooredoo plan
+            [Parameter(
+                Mandatory = $true,
+                HelpMessage = "A-F only")]
+            $OoredooPlan,
+            # sim holder - specific employee number
+            [Parameter(Mandatory = $true)]
+            $Option1_SimHolder_EmpNo,
+            # sim holder - department/location/station
+            [Parameter(Mandatory = $true)]
+            $Option2_SimHolder_DeptLocationStation,
+            # specific department of sim holder
+            [Parameter(Mandatory = $true)]
+            $Department,
+            # remarks
+            [Parameter(Mandatory = $true)]
+            $Remarks
+        )
 
-    # date requested - default automatic value
-    $Col1.Value = $CurrentDate
+        # date requested - default automatic value
+        $Col1.Value = $CurrentDate
 
-    # cm logic
-    if ($ICCID -eq "") {
-        # $Col2.Value = $Col2.Value
-        # nothing happens, this an unecessary method of doing this workflow, might be changed in the future
-    }
-    else {
-        $Col2.Value = $ICCID
-    }
-
-    if ($RequestType -eq "") {
-        $Col3.Value = "Mobile"  # default value
-    }
-    else {
-        $Col3.Value = $RequestType
-    }
-
-    if ($MobileNumber -eq "") {
-        # $Col4.Value = $Col4.Value
-    }
-    else {
-        $Col4.Value = $MobileNumber
-    }
-
-    if ($OoredooPlan -eq "") {
-        # $Col5.Value = $Col5.Value
-        # $Col6.Value = $Col6.Value
-        # $Col7.Value = $Col7.Value
-    }
-    elseif ($OoredooPlan -eq "A") {
-        $Col5.Value = "A"
-        $Col6.Value = "50.05"
-        $Col7.Value = "Aamali 65"
-    }
-    elseif ($OoredooPlan -eq "B") {
-        $Col5.Value = "B"
-        $Col6.Value = "72"
-        $Col7.Value = "Aamali 90"
-    }
-    elseif ($OoredooPlan -eq "C") {
-        $Col5.Value = "C"
-        $Col6.Value = "104"
-        $Col7.Value = "Aamali 130"
-    }
-    elseif ($OoredooPlan -eq "D") {
-        $Col5.Value = "D"
-        $Col6.Value = "120"
-        $Col7.Value = "Aamali 150"
-    }
-    elseif ($OoredooPlan -eq "E") {
-        $Col5.Value = "E"
-        $Col6.Value = "175"
-        $Col7.Value = "Aamali 250"
-    }
-    elseif ($OoredooPlan -eq "F") {
-        $Col5.Value = "F"
-        $Col6.Value = "325"
-        $Col7.Value = "Aamali 500"
-    }
-    else {
-        Write-Host "Error on Ooredoo Plan Input Value. Please Input A-F Only! Repeat the Process!!!" -ForegroundColor DarkRed
-    }
-
-    if ($Option1_SimHolder_EmpNo -eq "") {
-        # $Col8.Value = $Col8.Value
-    }
-    else {
-        $Col8.Value = $Option1_SimHolder_EmpNo
-    }
-
-    if ($Option2_SimHolder_DeptLocationStation -eq "") {
-        # $Col10.Value = $Col10.Value
-    }
-    else {
-        $Col10.Value = $Option2_SimHolder_DeptLocationStation
-    }
-
-    if ($Department -eq "") {
-        # $Col13.Value = $Col13.Value
-    }
-    else {
-        $Col13.Value = $Department
-    }
-
-    # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-    $Col16.Interior.ColorIndex = 6
-    for ($i = 1; $i -lt $LastRow; $i++) {
-        $Col16Value = "R-$($i)"
-        if ($Mainsheet.Range("P2:P$($LastRow)").Value2 -notcontains $Col16Value) {
-            $Col16.Value = $Col16Value
-            break
+        # cm logic
+        if ($ICCID -eq "") {
+            # $Col2.Value = $Col2.Value
+            # nothing happens, this an unecessary method of doing this workflow, might be changed in the future
         }
         else {
-            $Col16.Value = ""
+            $Col2.Value = $ICCID
         }
-    }
 
-    # this logic records history of changes which creates activity log
-    if ($Remarks -eq "") {
-        # $Col17.Value = $Col17.Value2
-        Write-Host "Do not proceed without remarks value, please select the repeat option and try again!`nMake sure to add value on remarks!" -ForegroundColor Red
-    }
-    else {
-        if ([string]::IsNullorEmpty($Col17.Value2)) {
-            $Col17.Value = "$CurrentDateTime - $Remarks"
+        if ($RequestType -eq "") {
+            $Col3.Value = "Mobile"  # default value
         }
         else {
-            $Column17Value = $Col17.Value2
-            $Col17.Value = "$Column17Value`n$CurrentDateTime - $Remarks"
+            $Col3.Value = $RequestType
+        }
+
+        if ($MobileNumber -eq "") {
+            # $Col4.Value = $Col4.Value
+        }
+        else {
+            $Col4.Value = $MobileNumber
+        }
+
+        if ($OoredooPlan -eq "") {
+            # $Col5.Value = $Col5.Value
+            # $Col6.Value = $Col6.Value
+            # $Col7.Value = $Col7.Value
+        }
+        elseif ($OoredooPlan -eq "A") {
+            $Col5.Value = "A"
+            $Col6.Value = "50.05"
+            $Col7.Value = "Aamali 65"
+        }
+        elseif ($OoredooPlan -eq "B") {
+            $Col5.Value = "B"
+            $Col6.Value = "72"
+            $Col7.Value = "Aamali 90"
+        }
+        elseif ($OoredooPlan -eq "C") {
+            $Col5.Value = "C"
+            $Col6.Value = "104"
+            $Col7.Value = "Aamali 130"
+        }
+        elseif ($OoredooPlan -eq "D") {
+            $Col5.Value = "D"
+            $Col6.Value = "120"
+            $Col7.Value = "Aamali 150"
+        }
+        elseif ($OoredooPlan -eq "E") {
+            $Col5.Value = "E"
+            $Col6.Value = "175"
+            $Col7.Value = "Aamali 250"
+        }
+        elseif ($OoredooPlan -eq "F") {
+            $Col5.Value = "F"
+            $Col6.Value = "325"
+            $Col7.Value = "Aamali 500"
+        }
+        else {
+            Write-Host "Error on Ooredoo Plan Input Value. Please Input A-F Only! Repeat the Process!!!" -ForegroundColor DarkRed
+        }
+
+        if ($Option1_SimHolder_EmpNo -eq "") {
+            # $Col8.Value = $Col8.Value
+        }
+        else {
+            $Col8.Value = $Option1_SimHolder_EmpNo
+        }
+
+        if ($Option2_SimHolder_DeptLocationStation -eq "") {
+            # $Col10.Value = $Col10.Value
+        }
+        else {
+            $Col10.Value = $Option2_SimHolder_DeptLocationStation
+        }
+
+        if ($Department -eq "") {
+            # $Col13.Value = $Col13.Value
+        }
+        else {
+            $Col13.Value = $Department
+        }
+
+        # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
+        $Col16.Interior.ColorIndex = 6
+        for ($i = 1; $i -lt $LastRow; $i++) {
+            $Col16Value = "R-$($i)"
+            if ($Mainsheet.Range("P2:P$($LastRow)").Value2 -notcontains $Col16Value) {
+                $Col16.Value = $Col16Value
+                break
+            }
+            else {
+                $Col16.Value = ""
+            }
+        }
+
+        # this logic records history of changes which creates activity log
+        if ($Remarks -eq "") {
+            # $Col17.Value = $Col17.Value2
+            Write-Host "Do not proceed without remarks value, please select the repeat option and try again!`nMake sure to add value on remarks!" -ForegroundColor Red
+        }
+        else {
+            if ([string]::IsNullorEmpty($Col17.Value2)) {
+                $Col17.Value = "$CurrentDateTime - $Remarks"
+            }
+            else {
+                $Column17Value = $Col17.Value2
+                $Col17.Value = "$Column17Value`n$CurrentDateTime - $Remarks"
+            }
         }
     }
-}
 
-function Proceed {
+    function Proceed {
 
-    # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-    $Col16.Interior.ColorIndex = 6
+        # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
+        $Col16.Interior.ColorIndex = 6
     
-    $Workbook.Save()  # saves the file
-    $Excel.Quit()  # close excel
-    $Excel = $null  # release the process
-
-    # completed process prompt message
-    $Message = "Successfully Modified."
-    Write-Host $Message -ForegroundColor Green
-    
-}
-
-# run main function
-CM
-
-# modified information validation
-$Confirmation = Read-Host "Are you sure you want to proceed with this information? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
-
-function ConfirmFunc {
-    if ($Confirmation -eq "R") {
-        $Col17.Value = $RemarksOriginalValue
-        CM
-    }
-    elseif ($Confirmation -eq "Y") {
-        Proceed
-    }
-    else {
-        # this will cancel the whole process of this command and to make sure Excel File is always closed but not saved though
-        $Excel.DisplayAlerts = $false
+        $Workbook.Save()  # saves the file
         $Excel.Quit()  # close excel
         $Excel = $null  # release the process
-    }
-}
 
-# run ConfirmFunc
-ConfirmFunc
-
-# looping through 'ConfirmFunc' Function until 'proceed' or 'cancel' option have been selected
-while ($Confirmation -eq "R") {
-    $Confirmation = Read-Host "Are you reaalllyyy sure you want to proceed with this information? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
-    # loop through this function
-    ConfirmFunc
-}
-
-# automatically exits the terminal session
-function AutoExitTimer {
-    Write-Host "This terminal will automatically close after 5 seconds . . . . ." -ForegroundColor DarkRed
-  
-    $Timer = [Diagnostics.Stopwatch]::StartNew()
-  
-    $Timer.Start()
-  
-    while ($Timer.Elapsed.Seconds -le 5) {
-        # wait for 5 seconds
-    }
-  
-    Write-Host "Farewell!!!" -ForegroundColor Blue
+        # completed process prompt message
+        $Message = "Successfully Modified."
+        Write-Host $Message -ForegroundColor Green
     
-    while ($Timer.Elapsed.Seconds -le 7) {
-        # wait for another 2 seconds
     }
 
-    $Timer.Stop()
+    # run main function
+    CM
+
+    # modified information validation
+    $Confirmation = Read-Host "Are you sure you want to proceed with this information? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
+
+    function ConfirmFunc {
+        if ($Confirmation -eq "R") {
+            $Col17.Value = $RemarksOriginalValue
+            CM
+        }
+        elseif ($Confirmation -eq "Y") {
+            Proceed
+        }
+        else {
+            # this will cancel the whole process of this command and to make sure Excel File is always closed but not saved though
+            $Excel.DisplayAlerts = $false
+            $Excel.Quit()  # close excel
+            $Excel = $null  # release the process
+        }
+    }
+
+    # run ConfirmFunc
+    ConfirmFunc
+
+    # looping through 'ConfirmFunc' Function until 'proceed' or 'cancel' option have been selected
+    while ($Confirmation -eq "R") {
+        $Confirmation = Read-Host "Are you reaalllyyy sure you want to proceed with this information? Enter 'R' to repeat, 'Y' to proceed and 'C' to cancel."
+        # loop through this function
+        ConfirmFunc
+    }
+
+    # exit the program
+    PostAutoExit
 }
-
-# run taskkill.exe to kill all excel.exe processes for smooth execution of this command
-TaskKill /IM Excel.exe /F
-
-# run AutoExit
-AutoExitTimer
-
-# garbage collection
-[GC]::Collect()
-
-# this automatically kills the current powershell session
-[Environment]::Exit(0)

@@ -58,7 +58,7 @@ $Col14 = $MainSheet.Cells($RowIndex, 14) # ColN - Staff Grade
 # Column 15 / O is not used in this command.
 $Col16 = $MainSheet.Cells($RowIndex, 16) # ColP - Request Completion Date
 $Col17 = $MainSheet.Cells($RowIndex, 17) # ColQ - Remarks (Activity Log)
-# Column 18 / R is not used in this command.
+$Col18 = $MainSheet.Cells($RowIndex, 18) # ColR - Sim Card Status
 
 # date and time details used for remarks
 $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
@@ -67,264 +67,20 @@ $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
 $PlanDefaultValue = $Col5.Value2
 $AamaliPlanDefaultValue = $Col7.Value2
 
-# save the changes Upgrade Function has done
-function ProceedUpgrade {
-
-  # this will record the history of upgrade changes
-  if ([string]::IsNullorEmpty($Col17.Value2)) {
-    $Col17.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Upgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
-  }
-  else {
-    $Column17Value = $Col17.Value2
-    $Col17.Value = "$($Column17Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Upgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
-  }
-
-  $Workbook.Save()  # saves the file
-  $Excel.Quit()  # close excel
-  $Excel = $null  # release the process
-
-  # completed process prompt message
-  $Message = "Successfully Upgraded."
-  Write-Host $Message -ForegroundColor Green
-}
-
-# save the changes Downgrade Function has done
-function ProceedDowngrade {
-  # this will record the history of downgrade changes
-  if ([string]::IsNullorEmpty($Col17.Value2)) {
-    $Col17.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Downgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
-  }
-  else {
-    $Column17Value = $Col17.Value2
-    $Col17.Value = "$($Column17Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Downgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
-  }
-
-  $Workbook.Save()  # saves the file
-  $Excel.Quit()  # close excel
-  $Excel = $null  # release the process
-
-  # completed process prompt message
-  $Message = "Successfully Downgraded."
-  Write-Host $Message -ForegroundColor DarkGreen
-}
-
-# cancel function
-function Cancel {
-  # this will cancel the whole process of this command and to make sure Excel File is always closed but not saved though
-  $Excel.DisplayAlerts = $false
-  $Excel.Quit()  # close excel
-  $Excel = $null  # release the process
-}
-
-# upgrade function
-function Upgrade {
-
-  param (
-    # upgrade plan
-    [Parameter(Mandatory = $true)]
-    $UpgradeToPlan
-  )
-
-  # date requested - automatic invocation
-  $CurrentDate = Get-Date -Format "dd-MMM-yyyy"
-  $Col1.Value = $CurrentDate
-
-  # plan upgradation logic
-  switch ($UpgradeToPlan) {
-    "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
-    "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
-    "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
-    "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
-    "F" { $Col5.Value = "F"; $Col6.Value = "325"; $Col7.Value = "Aamali 500" }
-
-    Default { $Col5.Value = $PlanDefaultValue; Write-Host "Invalid Plan Input; No Changes have been Made`nYou either repeat or cancel then start again." -ForegroundColor DarkBlue }  # nothing to do; remains the same
-  }
-
-  # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-  $Col16.Interior.ColorIndex = 6
-  for ($i = 1; $i -lt $LastUsedRow; $i++) {
-    $Col16Value = "R-$($i)"
-    if ($Mainsheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $Col16Value) {
-      $Col16.Value = $Col16Value
-      break
-    }
-    else {
-      $Col16.Value = ""
-    }
-  }
-}
-
-# downgrade function
-function Downgrade {
-  param (
-    # downgrade plan
-    [Parameter(Mandatory = $true)]
-    $DowngradeToPlan
-  )
-
-  # date requested - automatic invocation
-  $CurrentDate = Get-Date -Format "dd-MMM-yyyy"
-  $Col1.Value = $CurrentDate
-
-  # plan downgradation logic
-  switch ($DowngradeToPlan) {
-    "A" { $Col5.Value = "A"; $Col6.Value = "50.05"; $Col7.Value = "Aamali 65" }
-    "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
-    "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
-    "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
-    "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
-
-    Default { $Col5.Value = $PlanDefaultValue; Write-Host "Invalid Plan Input; No Changes have been Made`nYou either repeat or cancel then start again." -ForegroundColor DarkBlue }  # nothing to do; remains the same
-  }
-
-  # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
-  $Col16.Interior.ColorIndex = 6
-  for ($i = 1; $i -lt $LastUsedRow; $i++) {
-    $Col16Value = "R-$($i)"
-    if ($Mainsheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $Col16Value) {
-      $Col16.Value = $Col16Value
-      break
-    }
-    else {
-      $Col16.Value = ""
-    }
-  }
-}
-
-# function that displays the necessary information of card holder
-function InfoDisplay {
-  function EligiblePlan {
-    # plan eligibility values
-    $NA = "Not Applicable as per the ACIFM Staff Grades and Benefits Section"
-    $AB = "Plan A to Plan B only"
-    $AD = "Plan A to Plan D only"
-    $AE = "Plan A to Plan E only"
-    $AF = "Plan A to Plan F"
-
-    # switch statement conditions
-    switch ($Col14.Value2) {
-      "S1" { $NA }
-      "S2" { $NA }
-      "T1" { $NA }
-      "T2" { $NA }
-      "T3" { $NA }
-
-      "S3" { $AB }
-
-      "S4" { $AD }
-      "T4A" { $AD }
-
-      "T4B" { $AE }
-      "T4C" { $AE }
-      "M1A" { $AE }
-
-      "M1B" { $AF }
-      "M1C" { $AF }
-      "M2A" { $AF }
-      "M2B" { $AF }
-      "M3" { $AF }
-      "M4" { $AF }
-
-      Default { "I don't know about that because the Grade Value is ' $($Col14.Value2) '. You may manually check the Ooredoo Master File.🤷🏼‍♂️" }
-    }
-    return
-  }
-
-  # display output format
-  Write-Host "`n::::: OOREDOO MASTER FILE DETAILS :::::`n
-Sim Holder:              $($Col11.Value2)
-Mobile Number:           $($Col4.Value2)
-Current Ooredoo Plan:    $PlanDefaultValue
-Employee Grade:          $($Col14.Value2)
-Plan Eligibility:        $(EligiblePlan)`n" -ForegroundColor Magenta
-}
-
-# run InfoDisplay Function first
-InfoDisplay
-
-# initial action prompt used for action logic
-$Action = Read-Host "Enter 'U' to Upgrade - Enter 'D' to Downgrade - Enter 'C' to Cancel"
-
-function ActionLogic {
-  # action logic
-  if ($Action -eq "U") {
-    Upgrade
-  }
-  elseif ($Action -eq "D") {
-    Downgrade
-  }
-  else {
-    Cancel
-  }
-}
-
-# initial run
-ActionLogic
-
-# confirmation prompt inside a conditional statement
-if ($Action -eq "U") {
-  $Confirmation = Read-Host "Are you sure with the upgrade changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
-}
-elseif ($Action -eq "D") {
-  $Confirmation = Read-Host "Are you sure with the downgrade changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
-}
-else {
-  Cancel
-}
-
-function ConfirmationLogic {
-  if ($Confirmation -eq "Y") {
-    if ($Action -eq "U") {
-      ProceedUpgrade
-    }
-    elseif ($Action -eq "D") {
-      ProceedDowngrade
-    }
-  }
-  elseif ($Confirmation -eq "R") {
-    $Col5.Value = $PlanDefaultValue  # needed to repeat the process with a clean slate
-  }
-  else {
-    Cancel
-  }
-}
-
-# run confirmation
-ConfirmationLogic
-
-while ($Confirmation -eq "R") {
-  $Action = Read-Host "Repeating...`nEnter 'U' to Upgrade - Enter 'D' to Downgrade - Enter 'C' to Cancel"
-  ActionLogic
-
-  # logical cancelation
-  if ($Action -eq "U") {
-    $Confirmation = Read-Host "Are you reaaallyyy sure with the changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
-    ConfirmationLogic
-  }
-  elseif ($Action -eq "D") {
-    $Confirmation = Read-Host "Are you reaaallyyy sure with the changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
-    ConfirmationLogic
-  }
-  else {
-    $Confirmation = "C"  # needed to change the value of 'Confirmation' Variable to break from the while loop
-    Cancel
-  }
-}
-
-# automatically exits the terminal session
+# timer used before exiting the terminal session
 function AutoExitTimer {
   Write-Host "This terminal will automatically close after 5 seconds . . . . ." -ForegroundColor DarkRed
-  
+
   $Timer = [Diagnostics.Stopwatch]::StartNew()
-  
+
   $Timer.Start()
-  
+
   while ($Timer.Elapsed.Seconds -le 5) {
     # wait for 5 seconds
   }
-  
+
   Write-Host "Farewell!!!" -ForegroundColor Blue
-  
+
   while ($Timer.Elapsed.Seconds -le 7) {
     # wait for another 2 seconds
   }
@@ -332,14 +88,291 @@ function AutoExitTimer {
   $Timer.Stop()
 }
 
-# run taskkill.exe to kill all excel.exe processes for smooth execution of this command
-TaskKill /IM Excel.exe /F
+# pre auto exit function
+function PreAutoExit {  
+  # this will cancel the whole process of this command and to make sure Excel File is always closed but not saved though
+  $Excel.DisplayAlerts = $false
+  $Excel.Quit()  # close excel
+  $Excel = $null  # release the process
 
-# run AutoExit
-AutoExitTimer
+  # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
+  TaskKill /IM Excel.exe /F
 
-# garbage collection
-[GC]::Collect()
+  # garbage collection
+  [GC]::Collect()
 
-# this automatically kills the current powershell session
-[Environment]::Exit(0)
+  # run timer
+  Timer
+
+  # this automatically kills the current powershell session
+  [Environment]::Exit(0)
+}
+
+# post auto exit function
+function PostAutoExit {
+  # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
+  TaskKill /IM Excel.exe /F
+
+  # garbage collection
+  [GC]::Collect()
+
+  # run timer
+  Timer
+
+  # this automatically kills the current powershell session
+  [Environment]::Exit(0)
+}
+
+if ($Col18.Value2 -eq "INACTIVE") {
+  Write-Host "`nThe mobile number you entered is already inactive. This operation is being cancelled.`n" -ForegroundColor Red
+  PreAutoExit  # automatically exits the application
+}
+else {
+
+  # save the changes Upgrade Function has done
+  function ProceedUpgrade {
+
+    # this will record the history of upgrade changes
+    if ([string]::IsNullorEmpty($Col17.Value2)) {
+      $Col17.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Upgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
+    }
+    else {
+      $Column17Value = $Col17.Value2
+      $Col17.Value = "$($Column17Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Upgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
+    }
+
+    $Workbook.Save()  # saves the file
+    $Excel.Quit()  # close excel
+    $Excel = $null  # release the process
+
+    # completed process prompt message
+    $Message = "Successfully Upgraded."
+    Write-Host $Message -ForegroundColor Green
+  }
+
+  # save the changes Downgrade Function has done
+  function ProceedDowngrade {
+    # this will record the history of downgrade changes
+    if ([string]::IsNullorEmpty($Col17.Value2)) {
+      $Col17.Value = "$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Downgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
+    }
+    else {
+      $Column17Value = $Col17.Value2
+      $Col17.Value = "$($Column17Value)`n$($CurrentDateTime) - From Plan $($PlanDefaultValue) - $($AamaliPlanDefaultValue) Downgraded to Plan $($Col5.Value2) - $($Col7.Value2)"
+    }
+
+    $Workbook.Save()  # saves the file
+    $Excel.Quit()  # close excel
+    $Excel = $null  # release the process
+
+    # completed process prompt message
+    $Message = "Successfully Downgraded."
+    Write-Host $Message -ForegroundColor DarkGreen
+  }
+
+  # cancel function
+  function Cancel {
+    # this will cancel the whole process of this command and to make sure Excel File is always closed but not saved though
+    $Excel.DisplayAlerts = $false
+    $Excel.Quit()  # close excel
+    $Excel = $null  # release the process
+  }
+
+  # upgrade function
+  function Upgrade {
+
+    param (
+      # upgrade plan
+      [Parameter(Mandatory = $true)]
+      $UpgradeToPlan
+    )
+
+    # date requested - automatic invocation
+    $CurrentDate = Get-Date -Format "dd-MMM-yyyy"
+    $Col1.Value = $CurrentDate
+
+    # plan upgradation logic
+    switch ($UpgradeToPlan) {
+      "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
+      "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
+      "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
+      "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
+      "F" { $Col5.Value = "F"; $Col6.Value = "325"; $Col7.Value = "Aamali 500" }
+
+      Default { $Col5.Value = $PlanDefaultValue; Write-Host "Invalid Plan Input; No Changes have been Made`nYou either repeat or cancel then start again." -ForegroundColor DarkBlue }  # nothing to do; remains the same
+    }
+
+    # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
+    $Col16.Interior.ColorIndex = 6
+    for ($i = 1; $i -lt $LastUsedRow; $i++) {
+      $Col16Value = "R-$($i)"
+      if ($Mainsheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $Col16Value) {
+        $Col16.Value = $Col16Value
+        break
+      }
+      else {
+        $Col16.Value = ""
+      }
+    }
+  }
+
+  # downgrade function
+  function Downgrade {
+    param (
+      # downgrade plan
+      [Parameter(Mandatory = $true)]
+      $DowngradeToPlan
+    )
+
+    # date requested - automatic invocation
+    $CurrentDate = Get-Date -Format "dd-MMM-yyyy"
+    $Col1.Value = $CurrentDate
+
+    # plan downgradation logic
+    switch ($DowngradeToPlan) {
+      "A" { $Col5.Value = "A"; $Col6.Value = "50.05"; $Col7.Value = "Aamali 65" }
+      "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
+      "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
+      "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
+      "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
+
+      Default { $Col5.Value = $PlanDefaultValue; Write-Host "Invalid Plan Input; No Changes have been Made`nYou either repeat or cancel then start again." -ForegroundColor DarkBlue }  # nothing to do; remains the same
+    }
+
+    # highlights the request completion date indicating that it's currently pending for completion - this is for 'RequestCompletor Command' use case
+    $Col16.Interior.ColorIndex = 6
+    for ($i = 1; $i -lt $LastUsedRow; $i++) {
+      $Col16Value = "R-$($i)"
+      if ($Mainsheet.Range("P2:P$($LastUsedRow)").Value2 -notcontains $Col16Value) {
+        $Col16.Value = $Col16Value
+        break
+      }
+      else {
+        $Col16.Value = ""
+      }
+    }
+  }
+
+  # function that displays the necessary information of card holder
+  function InfoDisplay {
+    function EligiblePlan {
+      # plan eligibility values
+      $NA = "Not Applicable as per the ACIFM Staff Grades and Benefits Section"
+      $AB = "Plan A to Plan B only"
+      $AD = "Plan A to Plan D only"
+      $AE = "Plan A to Plan E only"
+      $AF = "Plan A to Plan F"
+
+      # switch statement conditions
+      switch ($Col14.Value2) {
+        "S1" { $NA }
+        "S2" { $NA }
+        "T1" { $NA }
+        "T2" { $NA }
+        "T3" { $NA }
+
+        "S3" { $AB }
+
+        "S4" { $AD }
+        "T4A" { $AD }
+
+        "T4B" { $AE }
+        "T4C" { $AE }
+        "M1A" { $AE }
+
+        "M1B" { $AF }
+        "M1C" { $AF }
+        "M2A" { $AF }
+        "M2B" { $AF }
+        "M3" { $AF }
+        "M4" { $AF }
+
+        Default { "I don't know about that because the Grade Value is ' $($Col14.Value2) '. You may manually check the Ooredoo Master File.🤷🏼‍♂️" }
+      }
+      return
+    }
+
+    # display output format
+    Write-Host "`n::::: OOREDOO MASTER FILE DETAILS :::::`n
+Sim Holder:              $($Col11.Value2)
+Mobile Number:           $($Col4.Value2)
+Current Ooredoo Plan:    $PlanDefaultValue
+Employee Grade:          $($Col14.Value2)
+Plan Eligibility:        $(EligiblePlan)`n" -ForegroundColor Magenta
+  }
+
+  # run InfoDisplay Function first
+  InfoDisplay
+
+  # initial action prompt used for action logic
+  $Action = Read-Host "Enter 'U' to Upgrade - Enter 'D' to Downgrade - Enter 'C' to Cancel"
+
+  function ActionLogic {
+    # action logic
+    if ($Action -eq "U") {
+      Upgrade
+    }
+    elseif ($Action -eq "D") {
+      Downgrade
+    }
+    else {
+      Cancel
+    }
+  }
+
+  # initial run
+  ActionLogic
+
+  # confirmation prompt inside a conditional statement
+  if ($Action -eq "U") {
+    $Confirmation = Read-Host "Are you sure with the upgrade changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
+  }
+  elseif ($Action -eq "D") {
+    $Confirmation = Read-Host "Are you sure with the downgrade changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
+  }
+  else {
+    Cancel
+  }
+
+  function ConfirmationLogic {
+    if ($Confirmation -eq "Y") {
+      if ($Action -eq "U") {
+        ProceedUpgrade
+      }
+      elseif ($Action -eq "D") {
+        ProceedDowngrade
+      }
+    }
+    elseif ($Confirmation -eq "R") {
+      $Col5.Value = $PlanDefaultValue  # needed to repeat the process with a clean slate
+    }
+    else {
+      Cancel
+    }
+  }
+
+  # run confirmation
+  ConfirmationLogic
+
+  while ($Confirmation -eq "R") {
+    $Action = Read-Host "Repeating...`nEnter 'U' to Upgrade - Enter 'D' to Downgrade - Enter 'C' to Cancel"
+    ActionLogic
+
+    # logical cancelation
+    if ($Action -eq "U") {
+      $Confirmation = Read-Host "Are you reaaallyyy sure with the changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
+      ConfirmationLogic
+    }
+    elseif ($Action -eq "D") {
+      $Confirmation = Read-Host "Are you reaaallyyy sure with the changes to mobile plan? Enter 'Y' to proceed, 'R' to repeat and 'C' to Cancel."
+      ConfirmationLogic
+    }
+    else {
+      $Confirmation = "C"  # needed to change the value of 'Confirmation' Variable to break from the while loop
+      Cancel
+    }
+  }
+
+  # exit the program
+  PostAutoExit
+}
