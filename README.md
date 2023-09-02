@@ -1,4 +1,4 @@
-# Work Automation — Ooredoo
+# Work Automation — Ooredoo (updated as of 02-September-2023)
 
 ---
 
