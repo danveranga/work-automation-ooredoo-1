@@ -51,10 +51,6 @@ function RequestCompletor {
     Write-Host "Error: The request number you specified is not existing. Any changes will not be saved. Please run the command again." -ForegroundColor Red
     # automatically exits
     AutoExit
-    # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
-    TaskKill /IM Excel.exe /F
-    # this automatically kills the current powershell session
-    [Environment]::Exit(0)
   }
   elseif ($MainSheet.Range("P2:P$($LastUsedRow)").Value2 -match $RequestSelection) {
     $QueryDetails = $MainSheet.Range("P2:P$($LastUsedRow)").Find($RequestSelection).Row  # contains the specific row of the cell/s to modify
@@ -149,6 +145,9 @@ function SaveMe {
   $Message = "Successfully Completed the Specified Request."
   Write-Host $Message -ForegroundColor Green
 
+  # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
+  TaskKill /IM Excel.exe /F
+
   # run timer
   Timer
 }
@@ -159,6 +158,9 @@ function AutoExit {
   $Excel.DisplayAlerts = $false
   $Excel.Quit()  # close excel
   $Excel = $null  # release the process
+
+  # run taskkill.exe to kill all excel.exe processes for smooth execution of this command
+  TaskKill /IM Excel.exe /F
 
   # run timer
   Timer
@@ -186,9 +188,6 @@ else {
   Write-Host "There are no currently pending requests!`n" -ForegroundColor Green
   AutoExit  # no changes will be saved
 }
-
-# run taskkill.exe to kill all excel.exe processes for smooth execution of this command
-TaskKill /IM Excel.exe /F
 
 # garbage collection
 [GC]::Collect()
