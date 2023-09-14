@@ -1,0 +1,20 @@
+All Ooredoo Column Format
+
+1   A	  Date Requested / Date Last Modified
+2	  B	  ICC ID (Sim Reference Number)
+3	  C	  Request Type
+4	  D	  Mobile Number
+5	  E	  Ooredoo Plan Letter
+6	  F	  Ooredoo Plan Rate
+7	  G	  Ooredoo Plan Name
+8	  H	  Person Responsible for Sim Usage (Employee ID Only)
+9	  I	  Person Responsible for Sim Usage (Employee Name Only)
+10	J	  Department / Location / Station Responsible for Sim Usage (if specific employee is not available)
+11	K	  Sim Holder (Name/Station/Location)
+12	L	  User Designation
+13	M	  User Department
+14	N	  User Staff Grade
+15	O	  User Staff Employment Status
+16	P	  Request Completion Date
+17	Q	  Remarks (History)
+18	R	  Sim Card Status
