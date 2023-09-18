@@ -222,7 +222,7 @@ else {
         }
         elseif ($OoredooPlan -eq "B") {
             $Col5.Value = "B"
-            $Col6.Value = "72"
+            $Col6.Value = "49.50"
             $Col7.Value = "Aamali 90"
         }
         elseif ($OoredooPlan -eq "C") {
@@ -232,7 +232,7 @@ else {
         }
         elseif ($OoredooPlan -eq "D") {
             $Col5.Value = "D"
-            $Col6.Value = "120"
+            $Col6.Value = "75"
             $Col7.Value = "Aamali 150"
         }
         elseif ($OoredooPlan -eq "E") {
@@ -242,7 +242,7 @@ else {
         }
         elseif ($OoredooPlan -eq "F") {
             $Col5.Value = "F"
-            $Col6.Value = "325"
+            $Col6.Value = "240"
             $Col7.Value = "Aamali 500"
         }
         else {

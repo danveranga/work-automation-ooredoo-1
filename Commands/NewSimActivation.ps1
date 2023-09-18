@@ -66,11 +66,11 @@ function NewOoredooAccount {
 
   switch ($CurrentPlan) {
     "A" { $Col5.Value = "A"; $Col6.Value = "50.05"; $Col7.Value = "Aamali 65" }
-    "B" { $Col5.Value = "B"; $Col6.Value = "72"; $Col7.Value = "Aamali 90" }
+    "B" { $Col5.Value = "B"; $Col6.Value = "49.50"; $Col7.Value = "Aamali 90" }
     "C" { $Col5.Value = "C"; $Col6.Value = "104"; $Col7.Value = "Aamali 130" }
-    "D" { $Col5.Value = "D"; $Col6.Value = "120"; $Col7.Value = "Aamali 150" }
+    "D" { $Col5.Value = "D"; $Col6.Value = "75"; $Col7.Value = "Aamali 150" }
     "E" { $Col5.Value = "E"; $Col6.Value = "175"; $Col7.Value = "Aamali 250" }
-    "F" { $Col5.Value = "F"; $Col6.Value = "325"; $Col7.Value = "Aamali 500" }
+    "F" { $Col5.Value = "F"; $Col6.Value = "240"; $Col7.Value = "Aamali 500" }
 
     Default { $Col5.Value = ""; $Col6.Value = "" }
   }
