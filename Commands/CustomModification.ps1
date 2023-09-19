@@ -102,7 +102,7 @@ function PreAutoExit {
     [GC]::Collect()
   
     # run timer
-    Timer
+    AutoExitTimer
   
     # this automatically kills the current powershell session
     [Environment]::Exit(0)
@@ -117,7 +117,7 @@ function PostAutoExit {
     [GC]::Collect()
   
     # run timer
-    Timer
+    AutoExitTimer
   
     # this automatically kills the current powershell session
     [Environment]::Exit(0)
