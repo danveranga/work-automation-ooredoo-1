@@ -64,7 +64,14 @@ $Col18 = $MainSheet.Cells($RowIndex, 18) # ColR - Sim Card Status
 $CurrentDate = Get-Date -Format "dd-MMM-yyyy"
 $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
 
-# special patch for repeated remarks
+# original values for 'Repeat Option' patch
+$ICCIDOriginalValue = $Col2.Value2
+$RequestTypeOriginalValue = $Col3.Value2
+$MobileNumberOriginalValue = $Col4.Value2
+$OoredooPlanOriginalValue = $Col5.Value2
+$SimHolder_EmpNoOriginalValue = $Col8.Value2
+$SimHolder_DeptLocationStationOriginalValue = $Col10.Value2
+$DepartmentOriginalValue = $Col13.Value2
 $RemarksOriginalValue = $Col17.Value2
 
 # timer used before exiting the terminal session
@@ -322,6 +329,13 @@ else {
 
     function ConfirmFunc {
         if ($Confirmation -eq "R") {
+            $Col2.Value = $ICCIDOriginalValue
+            $Col3.Value = $RequestTypeOriginalValue
+            $Col4.Value = $MobileNumberOriginalValue
+            $Col5.Value = $OoredooPlanOriginalValue
+            $Col8.Value = $SimHolder_EmpNoOriginalValue
+            $Col10.Value = $SimHolder_DeptLocationStationOriginalValue
+            $Col13.Value = $DepartmentOriginalValue
             $Col17.Value = $RemarksOriginalValue
             CM
         }

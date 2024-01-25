@@ -19,41 +19,45 @@ $CurrentDateTime = Get-Date -Format "dd-MMM-yyyy @HH:mm"
 function ShowPendingActivities {
   Write-Host "PENDING REQUESTS:`n" -ForegroundColor Blue
   for ($i = 1; $i -le $LastUsedRow; $i++) {
-    if ($MainSheet.Cells($i, 12).Interior.ColorIndex -eq 6) {
-      $Column12 = $MainSheet.Cells($i, 12).Value2
-      $Column8 = $MainSheet.Cells($i, 8).Value2
-      $Column9 = $MainSheet.Cells($i, 9).Value2
-      $Column10 = $MainSheet.Cells($i, 10).Value2
-      $Column5 = $MainSheet.Cells($i, 5).Value2
-      Write-Host "# Request Number: $($Column12)" -ForegroundColor Cyan
-      Write-Host "Details: $($Column8) - $($Column9) - $($Column10) (with Plan $($Column5))`n" -ForegroundColor DarkMagenta
+    if ($MainSheet.Cells($i, 16).Interior.ColorIndex -eq 6) {
+      $Column16 = $MainSheet.Cells($i, 16).Value2  # request completion date (in this case the request number - if any)
+      $Column8 = $MainSheet.Cells($i, 8).Value2  # emp id of person responsible
+      $Column10 = $MainSheet.Cells($i, 10).Value2  # dept/loc/station of staff(s) responsible
+      $Column11 = $MainSheet.Cells($i, 11).Value2  # sim holder
+      $Column5 = $MainSheet.Cells($i, 5).Value2  # current plan letter
+      $Column7 = $MainSheet.Cells($i, 7).Value2  # current plan name
+      Write-Host "# Request Number: $($Column16)" -ForegroundColor Cyan
+      Write-Host "Details: $($Column8) $($Column10) - $($Column11) (with Plan $($Column5) - $($Column7))`n" -ForegroundColor DarkMagenta
     }
   }
 }
 
+#############################################################################################################################################
 # values to modify depending on the number of request to complete in one run
-$MultipleRequesttoComplete = 57
-$StartingRequestNumber = 12  # always decrement by one
+$MultipleRequesttoComplete = 1
+$StartingRequestNumber = 0  # always decrement by one!!
+#############################################################################################################################################
 
 # main function
 function RequestCompletor {
-  for ($i = $StartingRequestNumber; $i -le $MultipleRequesttoComplete; $i++) {
+  for ($i = $StartingRequestNumber; $i -le $($MultipleRequesttoComplete + $StartingRequestNumber); $i++) {
     $RequestSelection = "R-$i"
 
-    if ($MainSheet.Range("L2:L$($LastUsedRow)").Value2 -match $RequestSelection) {
-      $QueryDetails = $MainSheet.Range("L2:L$($LastUsedRow)").Find($RequestSelection).Row  # contains the specific row of the cell/s to modify
+    if ($MainSheet.Range("P2:P$($LastUsedRow)").Value2 -match $RequestSelection) {
+      $QueryDetails = $MainSheet.Range("P2:P$($LastUsedRow)").Find($RequestSelection).Row  # contains the specific row of the cell/s to modify
       $CurrentPendingMobileNumberRow = $MainSheet.Cells($QueryDetails, 4)  # this code assumes that mobile number is already in the database
-      $CurrentPlanRow = $MainSheet.Cells($QueryDetails, 5)
-      $CurrentDateCompletionRow = $MainSheet.Cells($QueryDetails, 12)
-      $CurrentRemarksRow = $MainSheet.Cells($QueryDetails, 13)
+      $CurrentPlanLetterRow = $MainSheet.Cells($QueryDetails, 5)
+      $CurrentPlanNameRow = $MainSheet.Cells($QueryDetails, 7)
+      $CurrentDateCompletionRow = $MainSheet.Cells($QueryDetails, 16)
+      $CurrentRemarksRow = $MainSheet.Cells($QueryDetails, 17)
 
-      # records the changes in remakrs
+      # records the changes in remakrs column
       if ([string]::IsNullorEmpty($CurrentRemarksRow.Value2)) {
-        $CurrentRemarksRow.Value = "$($CurrentDateTime) - Request was Completed; Service Number is $($CurrentPendingMobileNumberRow.Value2) with Plan $($CurrentPlanRow.Value2)"
+        $CurrentRemarksRow.Value = "$($CurrentDateTime) - Request was Completed; Service Number is $($CurrentPendingMobileNumberRow.Value2) with Plan $($CurrentPlanLetterRow.Value2) - $($CurrentPlanNameRow.Value2)"
       }
       else {
         $Column13Value = $CurrentRemarksRow.Value2
-        $CurrentRemarksRow.Value = "$($Column13Value)`n$($CurrentDateTime) - Request was Completed; Service Number is $($CurrentPendingMobileNumberRow.Value2) with Plan $($CurrentPlanRow.Value2)"
+        $CurrentRemarksRow.Value = "$($Column13Value)`n$($CurrentDateTime) - Request was Completed; Service Number is $($CurrentPendingMobileNumberRow.Value2) with Plan $($CurrentPlanLetterRow.Value2) - $($CurrentPlanNameRow.Value2)"
       }
 
       # removes the color of the cell and adds the current date to column 12
@@ -115,8 +119,8 @@ function AutoExit {
 }
 
 # check first if there are pending requests
-$LRange = $MainSheet.Range("L2:L$($LastUsedRow)").Value2
-if ($LRange -match "R-") {
+$PColumnRange = $MainSheet.Range("P2:P$($LastUsedRow)").Value2
+if ($PColumnRange -match "R-") {
   # show first the pending activities
   ShowPendingActivities
   # run the completor to modify the necessary columns
