@@ -34,13 +34,15 @@ function ShowPendingActivities {
 
 #############################################################################################################################################
 # values to modify depending on the number of request to complete in one run
-$MultipleRequesttoComplete = 1
-$StartingRequestNumber = 0  # always decrement by one!!
+$MultipleRequesttoComplete = 12
+$StartingRequestNumber = 1
+$Index1 = $StartingRequestNumber - 1
+$Index2 = $MultipleRequesttoComplete + $Index1
 #############################################################################################################################################
 
 # main function
 function RequestCompletor {
-  for ($i = $StartingRequestNumber; $i -le $($MultipleRequesttoComplete + $StartingRequestNumber); $i++) {
+  for ($i = $Index1; $i -le $Index2; $i++) {
     $RequestSelection = "R-$i"
 
     if ($MainSheet.Range("P2:P$($LastUsedRow)").Value2 -match $RequestSelection) {
